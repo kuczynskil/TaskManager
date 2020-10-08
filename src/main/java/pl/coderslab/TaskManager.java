@@ -24,24 +24,28 @@ public class TaskManager {
         while (!action.equals("exit")) {
             displayOptions();
             action = toDo.next();
-            switch (action) {
-                case "list":
-                    displayList();
-                    break;
-                case "add":
-                    add();
-                    break;
-                case "remove":
-                    remove();
-                    break;
-                case "exit":
-                    System.out.println("\n" + ConsoleColors.PURPLE_BOLD + "Thank you, see you later alligator h3h3");
-                    break;
-                default:
-                    System.out.println(ConsoleColors.RED_BOLD + "Please enter a correct option.");
-            }
+            managerFunctionChoice(action);
         }
 
+    }
+
+    private static void managerFunctionChoice(String action) {
+        switch (action) {
+            case "list":
+                displayList();
+                break;
+            case "add":
+                add();
+                break;
+            case "remove":
+                remove();
+                break;
+            case "exit":
+                System.out.println("\n" + ConsoleColors.PURPLE_BOLD + "Thank you, see you later alligator h3h3");
+                break;
+            default:
+                System.out.println(ConsoleColors.RED_BOLD + "Please enter a correct option.");
+        }
     }
 
     public static void displayOptions() {
@@ -61,9 +65,9 @@ public class TaskManager {
             while (scan.hasNextLine()) {
                 String temp = scan.nextLine();
                 if (temp.contains("true")) {
-                    System.out.println(ConsoleColors.RED_BOLD + i + " : " + temp);
+                    System.out.printf("%s%s : %s%n", ConsoleColors.RED_BOLD, i, temp);
                 } else {
-                    System.out.println(ConsoleColors.RESET + i + " : " + temp);
+                    System.out.printf("%s%s : %s%n", ConsoleColors.RESET, i, temp);
                 }
                 i++;
             }
@@ -74,26 +78,13 @@ public class TaskManager {
 
     public static void add() {
         Scanner input = new Scanner(System.in);
-
         try (FileWriter fileWriter = new FileWriter("tasks.csv", true)) {
-            RandomAccessFile f = new RandomAccessFile("tasks.csv", "rw");
-            String str = "";
-            if (f.length() == 0) {
-                System.out.print("\nTask description: ");
-                str = input.nextLine();
-                fileWriter.append(str + ", ");
-            } else {
-                System.out.print("\nTask description: ");
-                str = input.nextLine();
-                fileWriter.append("\n" + str + ", ");
-            }
-            f.close();
+            System.out.print("\nTask description: ");
+            fileWriter.append(input.nextLine()).append(", ");
             System.out.print("Due Date: ");
-            str = input.nextLine();
-            fileWriter.append(str + ", ");
+            fileWriter.append(input.nextLine()).append(", ");
             System.out.print("Is it important(true/false): ");
-            str = input.nextLine();
-            fileWriter.append(str);
+            fileWriter.append(input.nextLine()).append("\n");
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -123,11 +114,6 @@ public class TaskManager {
             CSVWriter writer = new CSVWriter(sw);
             writer.writeAll(allElements, false);
             writer.close();
-
-            RandomAccessFile f = new RandomAccessFile("tasks.csv", "rw");
-            byte b = 1;
-            if (f.length() > 1) f.setLength(f.length() - b);
-            f.close();
 
         } catch (CsvException | IOException e) {
             e.printStackTrace();
