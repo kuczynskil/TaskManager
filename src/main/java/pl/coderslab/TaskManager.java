@@ -6,6 +6,7 @@ import com.opencsv.exceptions.CsvException;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -48,7 +49,7 @@ public class TaskManager {
                 clear();
                 break;
             case "exit":
-                System.out.println("\n" + ConsoleColors.PURPLE_BOLD + "Thank you, see you later alligator h3h3");
+                System.out.println(ConsoleColors.PURPLE_BOLD + "\nThank you, see you later alligator h3h3");
                 break;
             default:
                 System.out.println(ConsoleColors.RED_BOLD + "Please enter a correct option.");
@@ -59,14 +60,9 @@ public class TaskManager {
         Scanner scanner = new Scanner(System.in);
         System.out.print("\nEnter the number of the task, that you wish to edit: ");
         try {
-            CSVReader reader2 = new CSVReader(new FileReader(FILENAME));
-            List<String[]> allElements = reader2.readAll();
+            List<String[]> allElements = readFile();
             String rowEditIndex = scanner.nextLine();
-            while (!NumberUtils.isParsable(rowEditIndex) || !(Integer.parseInt(rowEditIndex) >= 0
-                    && Integer.parseInt(rowEditIndex) <= allElements.size())) {
-                System.out.println("Select a number from 1 to " + allElements.size() + "\nor '0' to cancel");
-                rowEditIndex = scanner.nextLine();
-            }
+            rowEditIndex = correctInput(scanner, allElements, rowEditIndex);
             if (Integer.parseInt(rowEditIndex) == 0) {
                 return;
             }
@@ -74,27 +70,30 @@ public class TaskManager {
             System.out.println(ConsoleColors.RESET + "Task description - enter '1'");
             System.out.println("Due date - enter '2'\nImportance(true/false) - enter '3'\nor '0' to cancel:");
             String elementToChange = scanner.nextLine();
-            while (!(elementToChange.equals("0") ||elementToChange.equals("1")
-                    || elementToChange.equals("2") || elementToChange.equals("3"))) {
-                System.out.println("Please enter a value between 1 - 3");
-                System.out.println("or '0' to cancel: ");
-                elementToChange = scanner.nextLine();
-            }
+            elementToChange = correctInput(scanner, elementToChange);
             if (elementToChange.equals("0")) {
                 return;
             }
             String[] whatToEdit = {"task description", "due date", "importance(true/false)"};
             System.out.printf("Enter an updated version of %s: ", whatToEdit[Integer.parseInt(elementToChange) - 1]);
-            String update = " " + scanner.nextLine();
+            String update;
+            if (elementToChange.equals("1")) {
+                update = scanner.nextLine();
+            } else {
+                update = " " + scanner.nextLine();
+            }
             allElements.get(Integer.parseInt(rowEditIndex) - 1)[Integer.parseInt(elementToChange) - 1] = update;
-            FileWriter sw = new FileWriter(FILENAME);
-            CSVWriter writer = new CSVWriter(sw);
-            writer.writeAll(allElements, false);
-            writer.close();
+            writeToFile(allElements);
         } catch (IOException | CsvException exception) {
             exception.printStackTrace();
         }
+    }
 
+    private static void writeToFile(List<String[]> allElements) throws IOException {
+        FileWriter sw = new FileWriter(FILENAME);
+        CSVWriter writer = new CSVWriter(sw);
+        writer.writeAll(allElements, false);
+        writer.close();
     }
 
     private static void clear() {
@@ -118,10 +117,10 @@ public class TaskManager {
 
     public static void displayList() {
         File file = new File(FILENAME);
+        int i = 1;
+        System.out.println();
         try {
             Scanner scan = new Scanner(file);
-            int i = 1;
-            System.out.println();
             while (scan.hasNextLine()) {
                 String temp = scan.nextLine();
                 if (temp.contains("true")) {
@@ -139,10 +138,10 @@ public class TaskManager {
     public static void add() {
         Scanner input = new Scanner(System.in);
         try (FileWriter fileWriter = new FileWriter(FILENAME, true)) {
-            System.out.print("\nTask description: ");
-            fileWriter.append(input.nextLine()).append(", ");
-            System.out.print("Due Date: ");
-            fileWriter.append(input.nextLine()).append(", ");
+            for (String s : Arrays.asList("\nTask description: ", "Due Date: ")) {
+                System.out.print(s);
+                fileWriter.append(input.nextLine()).append(", ");
+            }
             System.out.print("Is it important(true/false): ");
             fileWriter.append(input.nextLine()).append("\n");
         } catch (IOException ex) {
@@ -153,32 +152,46 @@ public class TaskManager {
     public static void remove() {
         Scanner scanner = new Scanner(System.in);
         try {
-            CSVReader reader2 = new CSVReader(new FileReader(FILENAME));
-            List<String[]> allElements = reader2.readAll();
+            List<String[]> allElements = readFile();
             if (allElements.size() == 0) {
                 System.out.println("\nThe tasks list is empty.");
                 return;
             }
             System.out.print("\nWhich task do you want to remove?\n(select corresponding number)\nor '0' to cancel: ");
-            String rowRemoveIndex = scanner.next();
-            while (!NumberUtils.isParsable(rowRemoveIndex) || !(Integer.parseInt(rowRemoveIndex) >= 0
-                    && Integer.parseInt(rowRemoveIndex) <= allElements.size())) {
-                System.out.println("Select a number from 1 to " + allElements.size() + "\nor '0' to cancel");
-                rowRemoveIndex = scanner.next();
-            }
+            String rowRemoveIndex = scanner.nextLine();
+            rowRemoveIndex = correctInput(scanner, allElements, rowRemoveIndex);
             if (Integer.parseInt(rowRemoveIndex) == 0) {
                 return;
             }
             allElements.remove(Integer.parseInt(rowRemoveIndex) - 1);
-            FileWriter sw = new FileWriter(FILENAME);
-            CSVWriter writer = new CSVWriter(sw);
-            writer.writeAll(allElements, false);
-            writer.close();
+            writeToFile(allElements);
 
         } catch (CsvException | IOException e) {
             e.printStackTrace();
         }
+    }
 
+    private static List<String[]> readFile() throws IOException, CsvException {
+        CSVReader reader2 = new CSVReader(new FileReader(FILENAME));
+        return reader2.readAll();
+    }
+
+    private static String correctInput(Scanner scanner, List<String[]> allElements, String rowRemoveIndex) {
+        while (!NumberUtils.isParsable(rowRemoveIndex) || !(Integer.parseInt(rowRemoveIndex) >= 0
+                && Integer.parseInt(rowRemoveIndex) <= allElements.size())) {
+            System.out.println("Select a number from 1 to " + allElements.size() + "\nor '0' to cancel:");
+            rowRemoveIndex = scanner.nextLine();
+        }
+        return rowRemoveIndex;
+    }
+
+    private static String correctInput(Scanner scanner, String elementToChange) {
+        while (!(elementToChange.equals("0") || elementToChange.equals("1")
+                || elementToChange.equals("2") || elementToChange.equals("3"))) {
+            System.out.println("Please enter a value between 1 - 3\nor '0 ' to cancel:");
+            elementToChange = scanner.nextLine();
+        }
+        return elementToChange;
     }
 
 }
