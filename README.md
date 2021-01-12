@@ -9,10 +9,10 @@ To run this program fork this repository, download it on your computer and run t
 
 ## Features
 * Available operations on tasks:
-       * **C**reate
-       * **R**ead
-       * **U**pdate
-       * **D**elete
+  * **C**reate
+  * **R**ead
+  * **U**pdate
+  * **D**elete
        
 ## Contact
 Created by [@kuczynskil](https://www.github.com/kuczynskil) - feel free to contact me!
